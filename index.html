@@ -252,6 +252,7 @@ body.on-light .top, body.on-light .axis{color:#111}
 
 .contact{position:absolute; right:6vw; top:50%; transform:translateY(-50%); width:min(40vw,540px); text-align:right}
 .contact.fade{transform:translateY(calc(-50% + 16px))} .contact.fade.on{transform:translateY(-50%)}
+.contact h2 em{color:var(--green)}
 .contact h2{margin:0; font:400 clamp(46px,5.4vw,92px)/.95 "Instrument Serif", Georgia, serif; letter-spacing:-.01em; text-align:right}
 .contact p{margin:16px 0 0 auto; font:400 14.5px/1.7 Poppins, Geist, sans-serif; color:#2a241f; max-width:34ch; opacity:.85}
 .links{display:flex; gap:12px; flex-wrap:wrap; justify-content:flex-end; margin-top:30px}
@@ -506,7 +507,7 @@ body.on-light .top, body.on-light .axis{color:#111}
   <section id="contact" aria-label="Contact">
     <div class="stage">
       <div class="contact fade" id="contactBox">
-        <h2>That’s what I’ve built so far.</h2>
+        <h2>My best work, <em>till now.</em></h2>
         <p>The next chapter is with your team. Hiring a full stack engineer, or just want to talk about real-time UIs? I reply within a day.</p>
         <div class="links">
           <a class="soc" style="--b:#fff" href="mailto:sanjnarao26@gmail.com" aria-label="Email">
@@ -1287,6 +1288,7 @@ function drawCard({ g, c }, d){
 
 /* ================= her desk: three monitors showing the three worlds, live ================= */
 const DESK = V(0, 0, -4.8);
+const AV_END = V(-4.6, 0, -2.6);
 const deskG = new THREE.Group(); deskG.position.copy(DESK); scene.add(deskG);
 const wood = M(0xB9774B, { roughness:.7, clearcoat:.3 }), darkWood = M(0x8E5934, { roughness:.8 });
 const bezel = M(0x111111, { roughness:.35, clearcoat:.6 }), metal = M(0x2c2c2e, { roughness:.4, metalness:.6 });
@@ -1304,6 +1306,13 @@ const MW = 1.9, MH = 1.19, rts = [], deskMons = [];
   deskG.add(g); deskMons.push(g);
 });
 const lampLight = new THREE.PointLight(0xffb36b, 0, 16, 1.4); lampLight.position.set(3.3, 2.6, .6); deskG.add(lampLight);
+// the ending: no desk, just her in a soft pool of warm light
+const endLight = new THREE.SpotLight(0xffd2a1, 0, 18, .5, .7, 1.2); scene.add(endLight, endLight.target);
+const spotT = (() => { const c = document.createElement('canvas'); c.width = c.height = 256; const g = c.getContext('2d');
+  const gr = g.createRadialGradient(128, 128, 0, 128, 128, 128); gr.addColorStop(0, 'rgba(255,214,170,.85)'); gr.addColorStop(.45, 'rgba(255,190,140,.35)'); gr.addColorStop(1, 'rgba(255,190,140,0)');
+  g.fillStyle = gr; g.fillRect(0, 0, 256, 256); const t = new THREE.CanvasTexture(c); t.colorSpace = THREE.SRGBColorSpace; return t; })();
+const spot = new THREE.Mesh(new THREE.CircleGeometry(2.6, 64), new THREE.MeshBasicMaterial({ map:spotT, transparent:true, opacity:0, depthWrite:false, blending:THREE.AdditiveBlending, toneMapped:false }));
+spot.rotation.x = -Math.PI / 2; spot.position.y = .015; scene.add(spot);
 const lampShade = mesh(new THREE.ConeGeometry(.32, .36, 24, 1, true), M(0xF2C14E, { side:THREE.DoubleSide, emissive:new THREE.Color(0xffb36b), emissiveIntensity:0 }), [3.3, 2.15, .55]); deskG.add(lampShade);
 deskG.add(mesh(new THREE.CylinderGeometry(.025, .025, .95, 10), metal, [3.3, 1.65, .55]));
 deskG.add(mesh(new THREE.CylinderGeometry(.18, .2, .05, 24), metal, [3.3, 1.2, .55]));
@@ -1370,7 +1379,7 @@ function shots(){
     p2: shot(V(PX + 7, 3.6, 12.5), V(PX + 9.4, 2.5, -1), BG.pm),
     p3: shot(V(PX - 7.2, 3.8, 11.5), V(PX - 10.2, 3.4, -.8), BG.pm),
     also: narrow ? { pos:V(ALSO_X, 3.9, 17), look:V(ALSO_X, 3.6, 0), bg:BG.beige } : { pos:V(ALSO_X, 1.9, 9.2), look:V(ALSO_X, 1.7, 0), bg:BG.beige },
-    contact: narrow ? { pos:V(4.2, 1.9, 9.8), look:V(4.4, .5, -3.2), bg:BG.night } : (() => { const D = 10.5 / (Math.tan(camera.fov * Math.PI / 360) * camera.aspect); return { pos:V(2.96, 1.9 + D * .08, -3.6 + D), look:V(2.96, 1.9, -3.6), bg:BG.night }; })()
+    contact: narrow ? { pos:V(4.7, 1.2, 13.9), look:V(4.7, -.3, -3.1), bg:BG.night } : (() => { const D = 12.5, lx = AV_END.x + .5 * Math.tan(camera.fov * Math.PI / 360) * D * camera.aspect; return { pos:V(lx, 2.6, AV_END.z + D), look:V(lx, 1.75, AV_END.z), bg:BG.night }; })()
   };
 }
 let stops = [];
@@ -1511,7 +1520,7 @@ const st = { shown: reduce ? 1 : 0, bodyY: reduce ? 0 : Math.PI, headY:0, headX:
 let nextBlink = 2, dt = 1/60, walkPh = 0, shown = false, lite = /[?&]lite\b/.test(location.search), slowChecks = 0;
 function goLite(){ if(lite && goLite.done) return; lite = true; goLite.done = true; key.castShadow = false; dust.visible = false; renderer.setPixelRatio(1); composer.setPixelRatio(1); }
 if(lite) setTimeout(goLite);
-const AV_HOME = V(0, 0, 0), AV_DESK = V(4.7, 0, -3.1), AV_END = V(-4.6, 0, -2.6), veil = $('veil');
+const AV_HOME = V(0, 0, 0), AV_DESK = V(4.7, 0, -3.1), veil = $('veil');
 const sm = k => reduce ? 1 : 1 - Math.pow(1 - k, dt * 60);
 const easeIO = t => t < .5 ? 4*t*t*t : 1 - Math.pow(-2*t + 2, 3) / 2;
 const tmp = new THREE.Vector3();
@@ -1597,6 +1606,11 @@ function frame(){
   dust.material.color.set(lum < .3 ? 0x4DA3FF : 0x12A15E);
   const nightK = clamp((scrollY - (secs[4].offsetTop - innerHeight * .9)) / (innerHeight * .9));
   lampLight.intensity = nightK * 7; lampShade.material.emissiveIntensity = nightK * 2.5;
+  // the desk leaves once the Also section has covered the screen, so the ending is just her
+  deskG.visible = scrollY < secs[3].offsetTop + innerHeight * .5;
+  spot.position.x = avatar.position.x; spot.position.z = avatar.position.z;
+  spot.material.opacity = nightK * .9;
+  endLight.intensity = nightK * 60; endLight.position.set(avatar.position.x + 1.6, 6.5, avatar.position.z + 3.5); endLight.target.position.copy(avatar.position);
   // keep one desk screen fresh per frame: render that world from its own camera into the monitor
   if(deskNear && (frameNo % (lite ? 4 : 2) === 1)){
     const i = rtTurn++ % 3, grp = [vel, wf, pm][i], vis = [vel.visible, wf.visible, pm.visible], bg0 = scene.background.clone(), fn = scene.fog.near, ff = scene.fog.far;
