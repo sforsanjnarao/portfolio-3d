@@ -1,0 +1,132 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>PrivMat case study · Sanjana Rao</title>
+<meta name="description" content="A privacy dashboard with breach checks, an encrypted password vault and a LangChain agent that can only ever see your own data.">
+<meta property="og:title" content="PrivMat: case study by Sanjana Rao">
+<meta property="og:description" content="A privacy dashboard with breach checks, an encrypted password vault and a LangChain agent that can only ever see your own data.">
+<meta property="og:image" content="https://bitshitfalse.com/og.png">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="icon" href="favicon.svg" type="image/svg+xml">
+<script defer src="/_vercel/insights/script.js"></script>
+<meta name="theme-color" content="#020617">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700&family=Geist+Mono:wght@400;500&family=Inter:wght@300;400;500;600&family=Playfair+Display:ital,wght@0,400;0,500;1,400;1,500&family=Space+Grotesk:wght@500;700&family=Orbitron:wght@700&display=swap" rel="stylesheet">
+<style>
+:root{color-scheme:dark; box-sizing:border-box; padding-top:env(safe-area-inset-top,0px); padding-bottom:env(safe-area-inset-bottom,0px)}
+@media (prefers-color-scheme:light){:root:not([data-theme="dark"]){color-scheme:dark}}
+*,*::before,*::after{box-sizing:inherit}
+body{margin:0; background:#020617; color:#f8fafc; font:400 16px/1.7 Inter, system-ui, sans-serif; -webkit-font-smoothing:antialiased}
+a{color:inherit}
+a:focus-visible, button:focus-visible{outline:2px solid #6366f1; outline-offset:3px}
+.wrap{max-width:1040px; margin:0 auto; padding:0 24px}
+.bar{display:flex; justify-content:space-between; align-items:center; padding:22px 0}
+.bar a{font:500 14px/1 Inter, system-ui, sans-serif; color:#9ca3af; text-decoration:none}
+.bar a:hover{color:#f8fafc}
+.kick{margin:56px 0 0; font:500 12.5px/1 ui-monospace, monospace; letter-spacing:.06em; text-transform:uppercase; color:#6366f1}
+h1{margin:14px 0 0; font:clamp(52px,8vw,104px)/.98 "Space Grotesk", system-ui, sans-serif; font-weight:700; letter-spacing:-.03em; background:linear-gradient(180deg,#818cf8,#38bdf8 55%,#2563eb); -webkit-background-clip:text; background-clip:text; color:transparent}
+.lead{margin:22px 0 0; max-width:60ch; font-size:19px; line-height:1.6; color:#9ca3af}
+.lead strong{color:#f8fafc; font-weight:600}
+.cta{display:flex; gap:10px; flex-wrap:wrap; margin-top:28px}
+.btn{display:inline-flex; align-items:center; padding:12px 18px; border-radius:6px; background:#fafafa; color:#171717; font:500 14.5px/1 Inter, system-ui, sans-serif; text-decoration:none; transition:transform .3s cubic-bezier(.22,1,.36,1)}
+.btn:hover{transform:translateY(-2px)}
+.btn.o{background:transparent; color:#f8fafc; box-shadow:inset 0 0 0 1px #1f2937}
+.stats{display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); gap:12px; margin-top:56px}
+.st{padding:20px; border-radius:10px; background:#0b1220; border:1px solid #1f2937}
+.st b{display:block; font:600 30px/1.1 Inter, system-ui, sans-serif; letter-spacing:-.02em}
+.st span{display:block; margin-top:6px; font-size:13.5px; color:#6b7280}
+h2{margin:84px 0 0; font:clamp(32px,4vw,46px)/1.05 "Space Grotesk", system-ui, sans-serif; font-weight:700; letter-spacing:-.03em; background:linear-gradient(180deg,#818cf8,#38bdf8 55%,#2563eb); -webkit-background-clip:text; background-clip:text; color:transparent}
+.sub{margin:10px 0 0; color:#9ca3af; max-width:62ch}
+.dia-box{margin-top:28px; padding:20px; border-radius:10px; background:#0b1220; border:1px solid #1f2937; overflow-x:auto}
+.dia{display:block; width:100%; min-width:720px; height:auto}
+.dia .nt{font:600 15px Inter, system-ui, sans-serif; fill:#f8fafc}
+.dia .ns{font:400 12px ui-monospace, monospace; fill:#6b7280}
+.dia .el{font:400 11.5px ui-monospace, monospace; fill:#9ca3af}
+ol.flow{list-style:none; margin:28px 0 0; padding:0; display:grid; gap:12px}
+ol.flow li{display:grid; grid-template-columns:56px minmax(0,1fr); gap:16px; padding:20px 22px; border-radius:10px; background:#0b1220; border:1px solid #1f2937}
+ol.flow li > b{font:500 14px/1.9 ui-monospace, monospace; color:#6366f1}
+ol.flow h3{margin:0; font:600 18px/1.4 Inter, system-ui, sans-serif}
+ol.flow p{margin:6px 0 0; color:#9ca3af}
+code{font:500 .88em ui-monospace, monospace; padding:2px 6px; border-radius:6px; background:#1f2937; color:#f8fafc}
+.broke{margin-top:28px; padding:28px; border-radius:10px; border:1px solid #6366f1; background:linear-gradient(180deg, color-mix(in srgb, #6366f1 10%, transparent), transparent)}
+.broke p{margin:0; font-size:18px; line-height:1.65}
+.broke p + p{margin-top:14px; color:#9ca3af; font-size:16px}
+.chips{display:flex; flex-wrap:wrap; gap:8px; margin-top:24px}
+.chips span{padding:7px 11px; border-radius:8px; border:1px solid #1f2937; background:#0b1220; font:500 13px/1 ui-monospace, monospace; color:#9ca3af}
+ul.next{margin:24px 0 0; padding-left:20px; color:#9ca3af}
+ul.next li{margin:6px 0}
+.end{display:flex; justify-content:space-between; align-items:center; gap:16px; flex-wrap:wrap; margin:96px 0 0; padding:28px 0 56px; border-top:1px solid #1f2937}
+.end p{margin:0; color:#9ca3af}
+@media (max-width:720px){.stats{grid-template-columns:repeat(2,minmax(0,1fr))} ol.flow li{grid-template-columns:minmax(0,1fr); gap:4px} .lead{font-size:17px}}
+@media (prefers-reduced-motion:reduce){.btn{transition:none}}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <nav class="bar" aria-label="Case study"><a href="index.html#work">← Back to the portfolio</a><a href="velocity.html">Next: Velocity →</a></nav>
+  <p class="kick">Case study · privacy dashboard</p>
+  <h1>PrivMat</h1>
+  <p class="lead">A personal privacy dashboard. Track which apps have your data, check your email against <strong>known breaches</strong>, keep passwords in an <strong>encrypted vault</strong>, and ask an <strong>AI agent</strong> what it all means for you.</p>
+  <div class="cta"><a class="btn" href="https://prevmat.vercel.app" target="_blank" rel="noopener">Open the live app</a><a class="btn o" href="https://github.com/sforsanjnarao/prevmat" target="_blank" rel="noopener">Read the code</a></div>
+  <div class="stats"><div class="st"><b>5</b><span>agent tools</span></div><div class="st"><b>AES-256</b><span>vault encryption</span></div><div class="st"><b>Argon2</b><span>master password hashing</span></div><div class="st"><b>1</b><span>user id the agent can see</span></div></div>
+
+  <h2>How it fits together</h2>
+  <p class="sub">The agent never gets to choose whose data it reads. Its tools are built for one user on the server, before the model sees a single message.</p>
+  <div class="dia-box"><svg viewBox="0 0 960 420" role="img" aria-label="Architecture diagram" class="dia">
+<defs><marker id="ar" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0L10 5L0 10z" fill="#6b7280"/></marker></defs>
+<path d="M210 76 Q240 60 270 76" fill="none" stroke="#6b7280" stroke-width="1.6" marker-end="url(#ar)"/>
+<text x="240" y="60" text-anchor="middle" class="el">question</text>
+<path d="M470 76 Q500 60 530 76" fill="none" stroke="#6b7280" stroke-width="1.6" marker-end="url(#ar)"/>
+<text x="500" y="60" text-anchor="middle" class="el">builds tools</text>
+<path d="M630 112 Q630 151 630 190" fill="none" stroke="#6b7280" stroke-width="1.6" marker-end="url(#ar)"/>
+<text x="630" y="143" text-anchor="middle" class="el">calls</text>
+<path d="M530 226 Q500 226 470 226" fill="none" stroke="#6b7280" stroke-width="1.6" marker-end="url(#ar)"/>
+<text x="500" y="218" text-anchor="middle" class="el">your rows only</text>
+<path d="M730 226 Q760 226 790 226" fill="none" stroke="#6b7280" stroke-width="1.6" marker-end="url(#ar)"/>
+<text x="760" y="218" text-anchor="middle" class="el">live check</text>
+<path d="M730 76 Q760 76 790 76" fill="none" stroke="#6b7280" stroke-width="1.6" marker-end="url(#ar)"/>
+<path d="M115 112 Q115 151 115 190" fill="none" stroke="#6b7280" stroke-width="1.6" marker-end="url(#ar)"/>
+<rect x="20" y="40" width="190" height="72" rx="10" fill="#0b1220" stroke="#1f2937" stroke-width="1.2"/>
+<text x="115.0" y="70.0" text-anchor="middle" class="nt">Next.js app</text>
+<text x="115.0" y="92.0" text-anchor="middle" class="ns">Clerk auth</text>
+<rect x="270" y="40" width="200" height="72" rx="10" fill="#0b1220" stroke="#6366f1" stroke-width="2"/>
+<text x="370.0" y="70.0" text-anchor="middle" class="nt">API route</text>
+<text x="370.0" y="92.0" text-anchor="middle" class="ns">user from session</text>
+<rect x="530" y="40" width="200" height="72" rx="10" fill="#0b1220" stroke="#6366f1" stroke-width="2"/>
+<text x="630.0" y="70.0" text-anchor="middle" class="nt">LangChain agent</text>
+<text x="630.0" y="92.0" text-anchor="middle" class="ns">GPT-4o-mini</text>
+<rect x="530" y="190" width="200" height="72" rx="10" fill="#0b1220" stroke="#6366f1" stroke-width="2"/>
+<text x="630.0" y="220.0" text-anchor="middle" class="nt">5 tools</text>
+<text x="630.0" y="242.0" text-anchor="middle" class="ns">bound to one user id</text>
+<rect x="270" y="190" width="200" height="72" rx="10" fill="#0b1220" stroke="#1f2937" stroke-width="1.2"/>
+<text x="370.0" y="220.0" text-anchor="middle" class="nt">PostgreSQL</text>
+<text x="370.0" y="242.0" text-anchor="middle" class="ns">Prisma</text>
+<rect x="790" y="190" width="160" height="72" rx="10" fill="#0b1220" stroke="#1f2937" stroke-width="1.2"/>
+<text x="870.0" y="220.0" text-anchor="middle" class="nt">XposedOrNot</text>
+<text x="870.0" y="242.0" text-anchor="middle" class="ns">breach data</text>
+<rect x="20" y="190" width="190" height="72" rx="10" fill="#0b1220" stroke="#1f2937" stroke-width="1.2"/>
+<text x="115.0" y="220.0" text-anchor="middle" class="nt">Vault</text>
+<text x="115.0" y="242.0" text-anchor="middle" class="ns">AES-256-CBC · Argon2</text>
+<rect x="790" y="40" width="160" height="72" rx="10" fill="#0b1220" stroke="#1f2937" stroke-width="1.2"/>
+<text x="870.0" y="70.0" text-anchor="middle" class="nt">Breach explainer</text>
+<text x="870.0" y="92.0" text-anchor="middle" class="ns">structured output</text>
+</svg></div>
+
+  <h2>How the assistant stays in its lane</h2>
+  <ol class="flow"><li><b>01</b><div><h3>You ask a question</h3><p>The API route reads who you are from the server session, never from the request body.</p></div></li><li><b>02</b><div><h3>Tools are built for you</h3><p>The agent’s tools, like <code>list_my_breaches</code> and <code>get_risk_summary</code>, are created with your user id baked in.</p></div></li><li><b>03</b><div><h3>The model picks tools, not users</h3><p>It can choose which tool to call, but the user id is never one of its inputs, so it has no way to ask for someone else’s data.</p></div></li><li><b>04</b><div><h3>Breaches in plain words</h3><p>Raw breach records go through a structured-output call with a strict JSON schema, which comes back as a plain explanation with severity and what to do.</p></div></li></ol>
+
+  <h2>The hard part</h2>
+  <div class="broke"><p>Letting an AI agent read private data without trusting the model. Prompt rules like “only look at this user” can be talked around.</p><p>So the boundary lives in the code instead: the user id is bound when the tools are built, so the model physically can’t query another user’s rows, whatever it’s asked.</p></div>
+
+  <h2>Stack</h2>
+  <div class="chips"><span>Next.js</span><span>React</span><span>Clerk</span><span>PostgreSQL</span><span>Prisma</span><span>LangChain</span><span>GPT-4o-mini</span><span>Zod</span><span>AES-256-CBC</span><span>Argon2</span><span>XposedOrNot API</span><span>shadcn/ui</span><span>Vercel</span></div>
+
+  <h2>What I’d build next</h2>
+  <ul class="next"><li>Breach alerts by email when a tracked address shows up in a new leak.</li><li>Per-app privacy scores built from what each app has and whether it has leaked.</li><li>Exporting the vault in an encrypted format other password managers can import.</li></ul>
+
+  <div class="end"><p>Built by Sanjana Rao · full stack engineer</p><div class="cta" style="margin:0"><a class="btn o" href="index.html#work">Back to the portfolio</a><a class="btn" href="velocity.html">Next: Velocity</a></div></div>
+</div>
+</body>
+</html>

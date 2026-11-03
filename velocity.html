@@ -1,0 +1,136 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Velocity case study · Sanjana Rao</title>
+<meta name="description" content="A real-time crypto perpetuals exchange built solo: live prices, up to 100x leverage, and an in-memory engine with BigInt math.">
+<meta property="og:title" content="Velocity: case study by Sanjana Rao">
+<meta property="og:description" content="A real-time crypto perpetuals exchange built solo: live prices, up to 100x leverage, and an in-memory engine with BigInt math.">
+<meta property="og:image" content="https://bitshitfalse.com/og.png">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="icon" href="favicon.svg" type="image/svg+xml">
+<script defer src="/_vercel/insights/script.js"></script>
+<meta name="theme-color" content="#0a0a0b">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700&family=Geist+Mono:wght@400;500&family=Inter:wght@300;400;500;600&family=Playfair+Display:ital,wght@0,400;0,500;1,400;1,500&family=Space+Grotesk:wght@500;700&family=Orbitron:wght@700&display=swap" rel="stylesheet">
+<style>
+:root{color-scheme:dark; box-sizing:border-box; padding-top:env(safe-area-inset-top,0px); padding-bottom:env(safe-area-inset-bottom,0px)}
+@media (prefers-color-scheme:light){:root:not([data-theme="dark"]){color-scheme:dark}}
+*,*::before,*::after{box-sizing:inherit}
+body{margin:0; background:#0a0a0b; color:#fafafa; font:400 16px/1.7 Geist, system-ui, sans-serif; -webkit-font-smoothing:antialiased}
+a{color:inherit}
+a:focus-visible, button:focus-visible{outline:2px solid #ef4444; outline-offset:3px}
+.wrap{max-width:1040px; margin:0 auto; padding:0 24px}
+.bar{display:flex; justify-content:space-between; align-items:center; padding:22px 0}
+.bar a{font:500 14px/1 Geist, system-ui, sans-serif; color:#a1a1aa; text-decoration:none}
+.bar a:hover{color:#fafafa}
+.kick{margin:56px 0 0; font:500 12.5px/1 "Geist Mono", ui-monospace, monospace; letter-spacing:.06em; text-transform:uppercase; color:#ef4444}
+h1{margin:14px 0 0; font:clamp(52px,8vw,104px)/.98 Geist, system-ui, sans-serif; font-weight:700; letter-spacing:-.04em}
+.lead{margin:22px 0 0; max-width:60ch; font-size:19px; line-height:1.6; color:#a1a1aa}
+.lead strong{color:#fafafa; font-weight:600}
+.cta{display:flex; gap:10px; flex-wrap:wrap; margin-top:28px}
+.btn{display:inline-flex; align-items:center; padding:12px 18px; border-radius:6px; background:#ef4444; color:#fff; font:500 14.5px/1 Geist, system-ui, sans-serif; text-decoration:none; transition:transform .3s cubic-bezier(.22,1,.36,1)}
+.btn:hover{transform:translateY(-2px)}
+.btn.o{background:transparent; color:#fafafa; box-shadow:inset 0 0 0 1px #27272a}
+.stats{display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); gap:12px; margin-top:56px}
+.st{padding:20px; border-radius:12px; background:#111113; border:1px solid #27272a}
+.st b{display:block; font:600 30px/1.1 Geist, system-ui, sans-serif; letter-spacing:-.02em}
+.st span{display:block; margin-top:6px; font-size:13.5px; color:#71717a}
+h2{margin:84px 0 0; font:clamp(32px,4vw,46px)/1.05 Geist, system-ui, sans-serif; font-weight:700; letter-spacing:-.04em}
+.sub{margin:10px 0 0; color:#a1a1aa; max-width:62ch}
+.dia-box{margin-top:28px; padding:20px; border-radius:12px; background:#111113; border:1px solid #27272a; overflow-x:auto}
+.dia{display:block; width:100%; min-width:720px; height:auto}
+.dia .nt{font:600 15px Geist, system-ui, sans-serif; fill:#fafafa}
+.dia .ns{font:400 12px "Geist Mono", ui-monospace, monospace; fill:#71717a}
+.dia .el{font:400 11.5px "Geist Mono", ui-monospace, monospace; fill:#a1a1aa}
+ol.flow{list-style:none; margin:28px 0 0; padding:0; display:grid; gap:12px}
+ol.flow li{display:grid; grid-template-columns:56px minmax(0,1fr); gap:16px; padding:20px 22px; border-radius:12px; background:#111113; border:1px solid #27272a}
+ol.flow li > b{font:500 14px/1.9 "Geist Mono", ui-monospace, monospace; color:#ef4444}
+ol.flow h3{margin:0; font:600 18px/1.4 Geist, system-ui, sans-serif}
+ol.flow p{margin:6px 0 0; color:#a1a1aa}
+code{font:500 .88em "Geist Mono", ui-monospace, monospace; padding:2px 6px; border-radius:6px; background:#27272a; color:#fafafa}
+.broke{margin-top:28px; padding:28px; border-radius:12px; border:1px solid #ef4444; background:linear-gradient(180deg, color-mix(in srgb, #ef4444 10%, transparent), transparent)}
+.broke p{margin:0; font-size:18px; line-height:1.65}
+.broke p + p{margin-top:14px; color:#a1a1aa; font-size:16px}
+.chips{display:flex; flex-wrap:wrap; gap:8px; margin-top:24px}
+.chips span{padding:7px 11px; border-radius:8px; border:1px solid #27272a; background:#111113; font:500 13px/1 "Geist Mono", ui-monospace, monospace; color:#a1a1aa}
+ul.next{margin:24px 0 0; padding-left:20px; color:#a1a1aa}
+ul.next li{margin:6px 0}
+.end{display:flex; justify-content:space-between; align-items:center; gap:16px; flex-wrap:wrap; margin:96px 0 0; padding:28px 0 56px; border-top:1px solid #27272a}
+.end p{margin:0; color:#a1a1aa}
+@media (max-width:720px){.stats{grid-template-columns:repeat(2,minmax(0,1fr))} ol.flow li{grid-template-columns:minmax(0,1fr); gap:4px} .lead{font-size:17px}}
+@media (prefers-reduced-motion:reduce){.btn{transition:none}}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <nav class="bar" aria-label="Case study"><a href="index.html#work">← Back to the portfolio</a><a href="workfloww.html">Next: Workfloww →</a></nav>
+  <p class="kick">Case study · trading engine</p>
+  <h1>Velocity</h1>
+  <p class="lead">A real-time crypto perpetuals exchange I built on my own. Live <strong>BTC, ETH and SOL</strong> prices, long and short positions with up to <strong>100× leverage</strong>, and an in-memory engine that checks every open position on every price tick.</p>
+  <div class="cta"><a class="btn" href="https://velocity.bitshitfalse.com" target="_blank" rel="noopener">Open the live app</a><a class="btn o" href="https://github.com/sforsanjnarao/xness" target="_blank" rel="noopener">Read the code</a></div>
+  <div class="stats"><div class="st"><b>4</b><span>services in one Turborepo</span></div><div class="st"><b>3</b><span>markets: BTC, ETH, SOL</span></div><div class="st"><b>100×</b><span>max leverage</span></div><div class="st"><b>8</b><span>decimal places, in BigInt</span></div></div>
+
+  <h2>How it fits together</h2>
+  <p class="sub">Four services talk through Redis Streams. Nothing waits on the database: the engine keeps state in memory and writes to Postgres in batches.</p>
+  <div class="dia-box"><svg viewBox="0 0 960 420" role="img" aria-label="Architecture diagram" class="dia">
+<defs><marker id="ar" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0L10 5L0 10z" fill="#71717a"/></marker></defs>
+<path d="M210 75 Q240 57 270 75" fill="none" stroke="#71717a" stroke-width="1.6" marker-end="url(#ar)"/>
+<text x="240" y="58" text-anchor="middle" class="el">order</text>
+<path d="M460 75 Q490 57 520 75" fill="none" stroke="#71717a" stroke-width="1.6" marker-end="url(#ar)"/>
+<text x="490" y="58" text-anchor="middle" class="el">XADD</text>
+<path d="M620 110 Q620 145 620 180" fill="none" stroke="#71717a" stroke-width="1.6" marker-end="url(#ar)"/>
+<text x="620" y="137" text-anchor="middle" class="el">XREAD</text>
+<path d="M865 110 Q865 145 865 180" fill="none" stroke="#71717a" stroke-width="1.6" marker-end="url(#ar)"/>
+<text x="865" y="137" text-anchor="middle" class="el">prices</text>
+<path d="M780 222 Q750 222 720 222" fill="none" stroke="#71717a" stroke-width="1.6" marker-end="url(#ar)"/>
+<text x="750" y="214" text-anchor="middle" class="el">bid / ask</text>
+<path d="M520 222 Q490 218 460 215" fill="none" stroke="#71717a" stroke-width="1.6" marker-end="url(#ar)"/>
+<text x="490" y="210" text-anchor="middle" class="el">result</text>
+<path d="M365 180 Q365 145 365 110" fill="none" stroke="#71717a" stroke-width="1.6" marker-end="url(#ar)"/>
+<text x="365" y="137" text-anchor="middle" class="el">XREAD</text>
+<path d="M620 264 Q620 297 620 330" fill="none" stroke="#71717a" stroke-width="1.6" marker-end="url(#ar)"/>
+<text x="620" y="289" text-anchor="middle" class="el">batch</text>
+<rect x="20" y="40" width="190" height="70" rx="10" fill="#111113" stroke="#27272a" stroke-width="1.2"/>
+<text x="115.0" y="69.0" text-anchor="middle" class="nt">Next.js web</text>
+<text x="115.0" y="91.0" text-anchor="middle" class="ns">trading UI</text>
+<rect x="270" y="40" width="190" height="70" rx="10" fill="#111113" stroke="#27272a" stroke-width="1.2"/>
+<text x="365.0" y="69.0" text-anchor="middle" class="nt">HTTP server</text>
+<text x="365.0" y="91.0" text-anchor="middle" class="ns">Express · JWT · Zod</text>
+<rect x="520" y="40" width="200" height="70" rx="10" fill="#111113" stroke="#27272a" stroke-width="1.2"/>
+<text x="620.0" y="69.0" text-anchor="middle" class="nt">Redis Stream</text>
+<text x="620.0" y="91.0" text-anchor="middle" class="ns">trading-engine</text>
+<rect x="520" y="180" width="200" height="84" rx="10" fill="#111113" stroke="#ef4444" stroke-width="2"/>
+<text x="620.0" y="216.0" text-anchor="middle" class="nt">Trading engine</text>
+<text x="620.0" y="238.0" text-anchor="middle" class="ns">in-memory · BigInt</text>
+<rect x="270" y="180" width="190" height="70" rx="10" fill="#111113" stroke="#27272a" stroke-width="1.2"/>
+<text x="365.0" y="209.0" text-anchor="middle" class="nt">Redis Stream</text>
+<text x="365.0" y="231.0" text-anchor="middle" class="ns">callback_queue</text>
+<rect x="780" y="180" width="170" height="84" rx="10" fill="#111113" stroke="#27272a" stroke-width="1.2"/>
+<text x="865.0" y="216.0" text-anchor="middle" class="nt">Price poller</text>
+<text x="865.0" y="238.0" text-anchor="middle" class="ns">Backpack WebSocket</text>
+<rect x="520" y="330" width="200" height="66" rx="10" fill="#111113" stroke="#27272a" stroke-width="1.2"/>
+<text x="620.0" y="357.0" text-anchor="middle" class="nt">PostgreSQL</text>
+<text x="620.0" y="379.0" text-anchor="middle" class="ns">Prisma · batched writes</text>
+<rect x="780" y="40" width="170" height="70" rx="10" fill="#111113" stroke="#27272a" stroke-width="1.2"/>
+<text x="865.0" y="69.0" text-anchor="middle" class="nt">Backpack</text>
+<text x="865.0" y="91.0" text-anchor="middle" class="ns">bookTicker feed</text>
+</svg></div>
+
+  <h2>What happens to an order</h2>
+  <ol class="flow"><li><b>01</b><div><h3>You place an order</h3><p>The web app sends it to the HTTP server, which checks your JWT cookie and validates the body with Zod.</p></div></li><li><b>02</b><div><h3>It goes onto a stream</h3><p>The server adds it to the <code>trading-engine</code> Redis Stream and waits for the reply.</p></div></li><li><b>03</b><div><h3>The engine fills it</h3><p>Longs open at the ask and shorts at the bid, using the latest price from Backpack. Margin, leverage and price are all BigInt with 8 decimals, so there is no floating point anywhere near the money.</p></div></li><li><b>04</b><div><h3>Every tick checks every position</h3><p>Each new bid/ask from the price poller runs through all open positions: liquidation first, then take-profit, then stop-loss. Positions close at the opposite side of the book.</p></div></li><li><b>05</b><div><h3>The result comes back</h3><p>The engine writes the outcome to <code>callback_queue</code>, the HTTP server reads it and answers the request, and Postgres gets the change in the next batch write.</p></div></li></ol>
+
+  <h2>What broke</h2>
+  <div class="broke"><p>I started with plain Redis pub/sub for order events. Under load, if the engine restarted mid-process, in-flight orders just vanished, because pub/sub doesn’t keep anything for a listener that isn’t there.</p><p>Moving to Redis Streams gave every event a place to live instead of a message that disappears if nobody is listening. That bug taught me more about how distributed systems fail than anything else I’ve built.</p></div>
+
+  <h2>Stack</h2>
+  <div class="chips"><span>Next.js 14</span><span>TypeScript</span><span>Express</span><span>Zod</span><span>JWT</span><span>Redis Streams</span><span>PostgreSQL</span><span>Prisma</span><span>Turborepo</span><span>pnpm</span><span>Docker</span><span>Nginx</span><span>Let’s Encrypt</span><span>AWS EC2</span></div>
+
+  <h2>What I’d build next</h2>
+  <ul class="next"><li>Consumer groups with acknowledgements, so the engine can replay anything it missed while it was down.</li><li>A proper order book with limit orders, not just market fills against the best bid and ask.</li><li>Load tests that put real numbers on how many positions one engine can check per tick.</li></ul>
+
+  <div class="end"><p>Built by Sanjana Rao · full stack engineer</p><div class="cta" style="margin:0"><a class="btn o" href="index.html#work">Back to the portfolio</a><a class="btn" href="workfloww.html">Next: Workfloww</a></div></div>
+</div>
+</body>
+</html>
